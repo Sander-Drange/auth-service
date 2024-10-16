@@ -18,6 +18,7 @@ public class JwtTokenProvider {
 
     private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
+    // Generates a JWT Token
     public String generateToken(Authentication authentication) {
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
 
@@ -25,29 +26,30 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
         return Jwts.builder()
-                .setSubject(userPrincipal.getUsername()) // Username as a subject
+                .setSubject(userPrincipal.getUsername())  // Use user ID as subject
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate)
-                .signWith(secretKey) // Use the same key for signing
+                .signWith(secretKey) // Sign with secure key
                 .compact();
     }
 
-    public Long getUserIdFromJWT(String token) {
+    // Extracts user ID (now username) from JWT
+    public String getUserIdFromJWT(String token) {
         Claims claims = Jwts.parserBuilder()
-                .setSigningKey(secretKey) // Consistent key usage
+                .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
 
-        return Long.parseLong(claims.getSubject()); // Assuming the subject is a numeric ID
+        return claims.getSubject();  // Now returns username as string
     }
 
+    // Validates the JWT token
     public boolean validateToken(String authToken) {
         try {
             Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(authToken);
             return true;
         } catch (JwtException | IllegalArgumentException ex) {
-            // Handle various JWT exceptions here (e.g., signature, expiration)
             return false;
         }
     }
