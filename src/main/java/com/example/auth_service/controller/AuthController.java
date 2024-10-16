@@ -3,7 +3,9 @@ package com.example.auth_service.controller;
 import com.example.auth_service.model.User;
 import com.example.auth_service.repository.UserRepository;
 import com.example.auth_service.security.JwtTokenProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,6 +25,7 @@ public class AuthController {
     private final JwtTokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
 
+    @Autowired
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
                           JwtTokenProvider tokenProvider,
@@ -63,4 +66,3 @@ public class AuthController {
         return ResponseEntity.ok(Collections.singletonMap("token", token));
     }
 }
-
