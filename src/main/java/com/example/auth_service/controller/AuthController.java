@@ -1,21 +1,19 @@
 package com.example.auth_service.controller;
 
+import com.example.auth_service.dto.AuthRequestDTO;
+import com.example.auth_service.dto.JwtResponseDTO;
 import com.example.auth_service.model.User;
 import com.example.auth_service.repository.UserRepository;
 import com.example.auth_service.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.Map;
 
 @RestController
 public class AuthController {
@@ -37,14 +35,14 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody Map<String, String> user) {
-        if (userRepository.findByUsername(user.get("username")).isPresent()) {
+    public ResponseEntity<?> registerUser(@RequestBody AuthRequestDTO requestDto) {
+        if (userRepository.findByUsername(requestDto.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Username is already taken");
         }
 
         User newUser = new User();
-        newUser.setUsername(user.get("username"));
-        newUser.setPassword(passwordEncoder.encode(user.get("password")));
+        newUser.setUsername(requestDto.getUsername());
+        newUser.setPassword(passwordEncoder.encode(requestDto.getPassword()));
         newUser.setRoles(Collections.singleton("USER"));
 
         userRepository.save(newUser);
@@ -53,16 +51,16 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody Map<String, String> user) {
+    public ResponseEntity<JwtResponseDTO> authenticateUser(@RequestBody AuthRequestDTO requestDto) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        user.get("username"),
-                        user.get("password")
+                        requestDto.getUsername(),
+                        requestDto.getPassword()
                 )
         );
 
         String token = tokenProvider.generateToken(authentication);
 
-        return ResponseEntity.ok(Collections.singletonMap("token", token));
+        return ResponseEntity.ok(new JwtResponseDTO(token));
     }
 }
